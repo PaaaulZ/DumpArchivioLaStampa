@@ -4,7 +4,7 @@ I don't have official names so I'll make my own.
 
 ## ID explaination
 
-Every page in the archive has an ID made like this: **[aaaa]_[bb]_[cccc]_[dddd]_[eeee]_[ffffffff]** (Ex: **1282_01_1867_0001_0001_18769495**).
+Every page in the archive has an ID made like this: **[aaaa]\_[bb]\_[cccc]\_[dddd]\_[eeee]\_[ffffffff]** (Ex: **1282_01_1867_0001_0001_18769495**).
 
 - [aaaa] seems fixed to 1282 until a certain year. (???)
 - [bb] is the newspaper id. Seems fixed to 01 => "La Stampa". (???)
@@ -32,7 +32,7 @@ You're going to have something like this
 "xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx=yyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyy; mosvisitor=1; PHPSESSID=aaaaaaaaaaaaaaaaaaaaaaaaaa; JSESSIONID=zzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzz.instanceNNN"
 ```
 
-**FOR EVERY API CALL YOU WILL NEED TO PASS THE COOKIES OR YOU WILL GET ERROR 501**
+**FOR (ALMOST) EVERY API CALL YOU WILL NEED TO PASS THE COOKIES AND S_FIELD OR YOU WILL GET ERROR 501**
 
 ## How can we loop?
 
@@ -49,7 +49,7 @@ We start with the first edition id (I got it for you from the homepage since sta
 
 ### "Edition details" API
 
-Input: page_id => Publication id (the **[aaaa]_[bb]_[cccc]_[dddd]_[eeee]_[ffffffff]** one). "Page" and "Metadata ID" are not important here.
+Input: page_id => Publication id (the **[aaaa]\_[bb]\_[cccc]\_[dddd]\_[eeee]\_[ffffffff]** one). "Page" and "Metadata ID" are not important here.
 
 Output: A JSON formatted array with edition number and edition date. Fields are called "uscita" and "data_uscita".
 
@@ -61,7 +61,7 @@ http://www.archiviolastampa.it/index2.php?option=com_lastampa&task=issue&no_html
 
 ### "Pages" API
 
-Input: page_id => Publication id (the **[aaaa]_[bb]_[cccc]_[dddd]_[eeee]_[ffffffff]** one). "Page" and "Metadata ID" are not important here.
+Input: page_id => Publication id (the **[aaaa]\_[bb]\_[cccc]\_[dddd]\_[eeee]\_[ffffffff]** one). "Page" and "Metadata ID" are not important here.
 
 Input: s_field => The s_field we got from the start.
 
@@ -83,7 +83,7 @@ http://www.archiviolastampa.it/index2.php?option=com_lastampa&task=issue&no_html
 
 ### "Download" API
 
-Input: page_id => Publication id (the **[aaaa]_[bb]_[cccc]_[dddd]_[eeee]_[ffffffff]** one). "Page" IS IMPORTANT here, obviously.
+Input: page_id => Publication id (the **[aaaa]\_[bb]\_[cccc]\_[dddd]\_[eeee]\_[ffffffff]** one). "Page" IS IMPORTANT here, obviously.
 
 Input: s_field => The s_field we got from the start.
 
@@ -93,3 +93,27 @@ Output: a JPG image you can directly save to a file.
 http://www.archiviolastampa.it/load.php?url=/downloadContent.do?id={PAGE_ID}&s={S_FIELD}
 ```
 
+### "Metadata" API
+
+Input: page_id_without_metadata_id => **[aaaa]\_[bb]\_[cccc]\_[dddd]\_[eeee]** instead of the standard **[aaaa]\_[bb]\_[cccc]\_[dddd]\_[eeee]\_[ffffffff]** or it won't work
+
+Input: s_field => The s_field we got from the start.
+
+Output: a JSON file containing OCR info (title, description, an id for every bounding box (the boxes you see around text), etc.).
+
+```
+http://www.archiviolastampa.it/load.php?url=/search/select/?wt=json&q=pageID:{PAGE_ID_WITHOUT_METADATA_ID}&s={S_FIELD}
+```
+
+### "Bounding boxes" API
+
+Input: full_page_id => **[aaaa]\_[bb]\_[cccc]\_[dddd]\_[eeee]\_[ffffffff]** (the **ffffffff** part is very important here)
+
+Input: s_field => The s_field we got from the start.
+
+Output: a JSON file containing OCR info about the single bounding box selected (coordinates, text contained, etc.).
+
+
+```
+http://www.archiviolastampa.it/load.php?url=/item/getmetadata.do?articleid={FULL_PAGE_ID}&query=&s={S_FIELD}
+```

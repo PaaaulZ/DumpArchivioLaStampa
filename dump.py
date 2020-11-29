@@ -46,6 +46,7 @@ def main():
         for page in pages:
             log.info(f"Page {page['number']}")
             download_image(page['number'], page['thumbnailId'], edition_details)
+            download_metadata(current_edition_id, edition_details)
         
         log.info("---------")
         current_edition_id = get_next_edition(edition_details['edition_date'])
@@ -126,7 +127,7 @@ def download_image(page_number, image_id, edition_details):
 
     if r.status_code != 200:
         log.critical(f"[-] download_image: Failed with status code {r.status_code}")
-        raise Exception(f"[-] get_pages: Failed with status code {r.status_code}")
+        raise Exception(f"[-] download_image: Failed with status code {r.status_code}")
 
     edition_year = get_year_from_edition_date(edition_details['edition_date'])
     edition_number = edition_details['edition_number']
@@ -154,15 +155,13 @@ def get_year_from_edition_date(edition_date):
 
 def download_session_fields():
 
-    # TODO: Fix this and remove manual cookies and s_field in main()
-
     # HACK: This is just a random page to load and get the s_field and cookies
     placeholder_page = "http://www.archiviolastampa.it/component/option,com_lastampa/task,search/mod,libera/action,viewer/Itemid,3/page,1/articleid,0251_01_2005_0352_0001_1857676/anews,true/"
     r = requests.get(placeholder_page, headers={"Cache-Control": "no-cache", "Pragma": "no-cache"})
 
     if r.status_code != 200:
         log.critical(f"[-] download_session_fields: Failed with status code {r.status_code}")
-        raise Exception(f"[-] get_pages: Failed with status code {r.status_code}")
+        raise Exception(f"[-] download_session_fields: Failed with status code {r.status_code}")
 
     soup = BeautifulSoup(r.content, features="lxml")
     s_field = soup.find("input", {"name":"t"})['value']
@@ -173,6 +172,69 @@ def download_session_fields():
     log.debug(f"Current cookies: {cookies}")
 
     return (s_field, cookies)
+
+def download_metadata(image_id, edition_details):
+
+    # Downloads metadata (titles, descriptions, bounding boxes ids, ocr confidence)
+
+    log.info("Downloading metadata JSON")
+
+    split_id = image_id.split('_')
+    if (len(split_id) > 5):
+        split_id = split_id[0:5]
+        image_id = '_'.join(split_id)
+
+    url = f"http://www.archiviolastampa.it/load.php?url=/search/select/?wt=json&q=pageID:{image_id}&s={s_field}"
+    r = requests.get(url, allow_redirects=True, headers={'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:83.0) Gecko/20100101 Firefox/83.0'}, cookies=cookies)
+
+    if r.status_code != 200:
+        log.critical(f"[-] download_metadata: Failed with status code {r.status_code}")
+        raise Exception(f"[-] download_metadata: Failed with status code {r.status_code}")
+
+    edition_year = get_year_from_edition_date(edition_details['edition_date'])
+    edition_number = edition_details['edition_number']
+
+    download_path = f"{BASE_PATH}\\{edition_year}\\{edition_number}\\metadata\\metadata.json"
+    # Create path if does not exist!
+    os.makedirs(os.path.dirname(download_path), exist_ok=True)
+
+    r_json = json.loads(r.content)
+    # Let's dump some pretty JSON instead of the ugly thing we get with the request
+    open(download_path, 'w').write(json.dumps(r_json, sort_keys=True, indent=4))
+
+    docs = r_json['response']['docs']
+
+    for doc in docs:
+        download_bounding_boxes(image_id, edition_details, doc['id'])
+
+    return
+
+def download_bounding_boxes(image_id, edition_details, metadata_id):
+
+    # Downloads info about bounding boxes (coordinates, text)
+
+    log.info("Downloading bounding boxes JSON")
+
+    image_id_full = image_id + "_" + metadata_id
+    url = f"http://www.archiviolastampa.it/load.php?url=/item/getmetadata.do?articleid={image_id_full}&query=&s={s_field}"
+    r = requests.get(url, allow_redirects=True, headers={'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:83.0) Gecko/20100101 Firefox/83.0'}, cookies=cookies)
+
+    if r.status_code != 200:
+        log.critical(f"[-] download_bounding_boxes: Failed with status code {r.status_code}")
+        raise Exception(f"[-] download_bounding_boxes: Failed with status code {r.status_code}")
+
+    edition_year = get_year_from_edition_date(edition_details['edition_date'])
+    edition_number = edition_details['edition_number']
+
+    r_json = json.loads(r.content)
+
+    download_path = f"{BASE_PATH}\\{edition_year}\\{edition_number}\\metadata\\bb\\{metadata_id}.json"
+    # Create path if does not exist!
+    os.makedirs(os.path.dirname(download_path), exist_ok=True)
+    # Let's dump some pretty JSON instead of the ugly thing we get with the request
+    open(download_path, 'w').write(json.dumps(r_json, sort_keys=True, indent=4))
+
+    return
 
 if __name__ == '__main__':
     main()
