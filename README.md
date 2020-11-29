@@ -12,9 +12,9 @@ Flash Player is going to be EOL (End of Life) after December 31 2020 (https://ww
 
 Read more (Italian only):
 
-https://www.ilpost.it/2020/11/27/archivio-storico-la-stampa-flash-player/
-https://innovando.it/138-anni-sul-filo-del-rasoio-archivio-storico-della-stampa-paga-lo-scotto-di-flash-player/
-https://tedeschini.medium.com/tecnologia-digitale-obsoleta-un-secolo-e-mezzo-di-storia-a-rischio-1bb75bf68c2f
+- https://www.ilpost.it/2020/11/27/archivio-storico-la-stampa-flash-player/
+- https://innovando.it/138-anni-sul-filo-del-rasoio-archivio-storico-della-stampa-paga-lo-scotto-di-flash-player/
+- https://tedeschini.medium.com/tecnologia-digitale-obsoleta-un-secolo-e-mezzo-di-storia-a-rischio-1bb75bf68c2f
 
 ## DISCLAIMER:
 
