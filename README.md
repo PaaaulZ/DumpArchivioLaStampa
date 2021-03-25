@@ -1,5 +1,7 @@
 # Dump Archivio "La Stampa" (www.archiviolastampa.it)
 
+## NOTICE: Website was updated and Flash Player removed. This extension is not needed anymore and maybe not even working right now.
+
 ## What:
 
 Python script to dump every single page of every single edition of the newspaper "La Stampa" from 1867 to 2006 (2005-12-31).
